@@ -1,4 +1,4 @@
-# SocialMediaX 🚀  
+# MyLink 🚀  
 *A modern social networking platform built with Laravel & Vue.js*  
 
 ## 📖 Overview  
@@ -32,5 +32,5 @@ Ensure you have these installed:
 
 ### Clone the Repository  
 ```sh
-git clone https://github.com/your-username/socialmediax.git
-cd socialmediax
+git clone https://github.com/chankuzy/mylink.git
+cd mylink
