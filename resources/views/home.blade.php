@@ -26,13 +26,23 @@
         @endif
     </div>
 
-    <!-- Fix the posts container structure -->
-    <div class="posts-container space-y-6 mt-8 max-w-[600px]">
-        @foreach($posts as $post)
-            @include('components.post-card', ['post' => $post])
-        @endforeach
-    </div>
+        <div class="posts-feed space-y-6 mt-8 max-w-[600px]">
+            <div id="posts-container" class="space-y-4">
+                @foreach($posts as $post)
+                    @include('components.post-card', ['post' => $post])
+                @endforeach
+            </div>
+            
+            <div id="scroll-trigger" class="h-10"></div>
+            
+            <div id="skeleton-container" class="hidden space-y-6">
+                @for($i = 0; $i < 2; $i++)
+                    <x-post-skeleton />
+                @endfor
+            </div>
+        </div>
     
+    <!-- Remove this duplicate skeleton container -->
     <div id="skeleton-container" class="hidden space-y-6 mt-8 max-w-[600px]">
         @for($i = 0; $i < 3; $i++)
             <x-post-skeleton />

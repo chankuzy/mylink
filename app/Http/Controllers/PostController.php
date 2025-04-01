@@ -25,16 +25,6 @@ class PostController extends Controller
             ->latest()
             ->paginate(5);
             
-            $suggestions = [];
-            if (Auth::check()) {
-                $suggestions = User::where('id', '!=', auth()->id())
-                    ->inRandomOrder()
-                    ->limit(10)
-                    ->get();
-            }
-    
-            $stories = [];
-    
             if (request()->ajax()) {
                 $html = '';
                 foreach ($posts as $post) {
@@ -47,12 +37,22 @@ class PostController extends Controller
                 ]);
             }
             
+            $suggestions = [];
+            if (Auth::check()) {
+                $suggestions = User::where('id', '!=', auth()->id())
+                    ->inRandomOrder()
+                    ->limit(5)
+                    ->get();
+            }
+    
+            $stories = [];
+            
             return view('home', compact('posts', 'suggestions', 'stories'));
         } catch (\Exception $e) {
             \Log::error('Posts index error: ' . $e->getMessage());
             if (request()->ajax()) {
                 return response()->json([
-                    'error' => 'Failed to load posts'
+                    'error' => $e->getMessage()
                 ], 500);
             }
             throw $e;

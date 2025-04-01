@@ -22,8 +22,18 @@ Route::middleware('guest')->group(function () {
 // Protected routes
 // Add these routes in your web.php
 Route::middleware('auth')->group(function () {
-    // Home route
-    Route::get('/', [PostController::class, 'index'])->name('home'); // This is using PostController
+    // Move this route to the top of the group
+    Route::get('/posts', [PostController::class, 'index'])->name('posts.index');
+    Route::get('/', [PostController::class, 'index'])->name('home');
+
+    // Update the post store route to use explicit path
+    Route::post('/posts', [PostController::class, 'store'])->name('posts.store');
+    
+    // Update other post routes to use consistent /posts prefix
+    Route::get('/posts/create', [PostController::class, 'create'])->name('create-post');
+    Route::get('/posts/{post}', [PostController::class, 'show'])->name('posts.show');
+    Route::post('/posts/{post}/like', [LikeController::class, 'toggle'])->name('posts.like');
+    Route::post('/posts/{post}/comment', [PostController::class, 'comment'])->name('posts.comment');
     
     // Navigation routes
     Route::get('/explore', [RouteController::class, 'explore'])->name('explore');
@@ -37,16 +47,6 @@ Route::middleware('auth')->group(function () {
     
     // Auth routes
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-    
-    // Post routes - consolidated
-    Route::prefix('posts')->group(function () {
-        Route::get('/', [PostController::class, 'index'])->name('posts.index');
-        Route::get('/create', [PostController::class, 'create'])->name('create-post');
-        Route::get('/{post}', [PostController::class, 'show'])->name('posts.show');
-        Route::post('/', [PostController::class, 'store'])->name('posts.store');
-        Route::post('/{post}/like', [LikeController::class, 'toggle'])->name('posts.like');
-        Route::post('/{post}/comment', [PostController::class, 'comment'])->name('posts.comment');
-    });
     
     // Profile routes - consolidated
     Route::prefix('profile')->group(function () {

@@ -22,6 +22,7 @@ import { initializeStorySlider } from './components/stories';
 import { initializeTheme } from './components/theme';
 import { showToast } from './components/toast';
 
+
 document.addEventListener('DOMContentLoaded', () => {
     // Make Alpine available globally for components
     window.Alpine = Alpine;
@@ -40,61 +41,20 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // Initialize posts if we're on a page with posts
-    if (document.querySelector('.posts-container')) {
+    const postsContainer = document.querySelector('#posts-container');
+    if (postsContainer) {
         initializePosts();
     }
     
-    // Initialize comments if we're on a page with posts
-    if (document.querySelector('.posts-container')) {
-        // Initialize comments on all pages
-        import { initializeComments } from './components/comments';
-        
-        document.addEventListener('DOMContentLoaded', () => {
-            initializeComments();
-        });
+    // Initialize comments
+    if (postsContainer) {
+        initializeComments();
     }
 });
 
-// Export components for use in other files if needed
+// Export components
 export {
     createSkeleton,
     optimizeImage,
     showToast
 };
-
-document.addEventListener('DOMContentLoaded', function() {
-    let page = 1;
-    let loading = false;
-    const container = document.querySelector('#posts-container');
-
-    if (!container) return;
-
-    window.addEventListener('scroll', function() {
-        if (loading) return;
-
-        if ((window.innerHeight + window.scrollY) >= document.documentElement.scrollHeight - 100) {
-            loading = true;
-            page++;
-
-            fetch(`/?page=${page}`, {
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.html) {
-                    container.insertAdjacentHTML('beforeend', data.html);
-                }
-                if (!data.hasMore) {
-                    window.removeEventListener('scroll', this);
-                }
-                loading = false;
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                loading = false;
-            });
-        }
-    });
-});

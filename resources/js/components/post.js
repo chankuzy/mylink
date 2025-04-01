@@ -1,16 +1,92 @@
 import { showToast } from './toast';
 
 export function initializePosts() {
-    // Initialize all posts on the page
     const posts = document.querySelectorAll('.post-card');
     posts.forEach(initializePostInteractions);
 
-    // Initialize infinite scroll
-    const postsContainer = document.querySelector('.posts-container');
-    const skeletonContainer = document.getElementById('skeleton-container');
-    
-    if (postsContainer && skeletonContainer) {
-        initializeInfiniteScroll(postsContainer, skeletonContainer);
+    // Debug log
+    console.log('Initializing infinite scroll...');
+
+    const postsContainer = document.querySelector('#posts-container');
+    const scrollTrigger = document.querySelector('#scroll-trigger');
+    const skeletonContainer = document.querySelector('#skeleton-container');
+
+    // Debug log for elements
+    console.log('Posts container:', postsContainer);
+    console.log('Scroll trigger:', scrollTrigger);
+    console.log('Skeleton container:', skeletonContainer);
+
+    if (!postsContainer || !scrollTrigger || !skeletonContainer) {
+        console.log('Missing required elements for infinite scroll');
+        return;
+    }
+
+    let page = 1;
+    let loading = false;
+    let hasMore = true;
+
+    // Create observer with debug logs
+    const observer = new IntersectionObserver((entries) => {
+        const [entry] = entries;
+        console.log('Intersection observer triggered:', entry.isIntersecting);
+        
+        if (entry.isIntersecting && !loading && hasMore) {
+            console.log('Loading more posts...');
+            loadMorePosts();
+        }
+    }, {
+        root: null,
+        rootMargin: '100px',
+        threshold: 0.1
+    });
+
+    observer.observe(scrollTrigger);
+    console.log('Observer attached to scroll trigger');
+
+    async function loadMorePosts() {
+        if (loading) return;
+        
+        try {
+            loading = true;
+            skeletonContainer.classList.remove('hidden');
+
+            const response = await fetch(`/posts?page=${page + 1}`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            
+            if (data.error) {
+                throw new Error(data.error);
+            }
+
+            if (data.html) {
+                postsContainer.insertAdjacentHTML('beforeend', data.html);
+                const newPosts = postsContainer.querySelectorAll('.post-card:not([data-initialized])');
+                newPosts.forEach(post => {
+                    initializePostInteractions(post);
+                    post.setAttribute('data-initialized', 'true');
+                });
+                page++;
+                hasMore = data.hasMore;
+            } else {
+                hasMore = false;
+            }
+        } catch (error) {
+            console.error('Infinite scroll error:', error);
+            hasMore = false;
+            showToast('Failed to load more posts', 'error');
+        } finally {
+            loading = false;
+            skeletonContainer.classList.toggle('hidden', !hasMore);
+        }
     }
 }
 
@@ -118,63 +194,5 @@ function initializePostInteractions(postCard) {
                 input.disabled = false;
             }
         });
-    }
-}
-
-function initializeInfiniteScroll(postsContainer, skeletonContainer) {
-    let page = 1;
-    let loading = false;
-    let hasMore = true;
-
-    const observer = new IntersectionObserver((entries) => {
-        const target = entries[0];
-        if (target.isIntersecting && !loading && hasMore) {
-            loadMorePosts();
-        }
-    }, {
-        rootMargin: '50px'
-    });
-
-    observer.observe(skeletonContainer);
-
-    async function loadMorePosts() {
-        if (loading || !hasMore) return;
-        
-        try {
-            loading = true;
-            skeletonContainer.style.display = 'block';
-
-            const response = await fetch(`/posts?page=${page + 1}`, {
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            });
-
-            const data = await response.json();
-            
-            if (data.html) {
-                postsContainer.insertAdjacentHTML('beforeend', data.html);
-                page++;
-                hasMore = data.hasMore;
-
-                // Initialize new posts
-                const newPosts = postsContainer.querySelectorAll('.post-card:not([data-initialized])');
-                newPosts.forEach(post => {
-                    initializePostInteractions(post);
-                    post.setAttribute('data-initialized', 'true');
-                });
-            }
-            
-            if (!hasMore) {
-                skeletonContainer.style.display = 'none';
-                observer.disconnect();
-            }
-        } catch (error) {
-            console.error('Error:', error);
-            showToast('Failed to load more posts', 'error');
-        } finally {
-            loading = false;
-            skeletonContainer.style.display = hasMore ? 'block' : 'none';
-        }
     }
 }

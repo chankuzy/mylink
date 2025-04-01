@@ -1,6 +1,8 @@
 @props(['post'])
 
-<div class="post-card bg-[#161830] rounded-xl overflow-hidden hover:bg-[#1c1f3a] transition-colors" data-initialized="false">
+<div class="post-card bg-[#161830] rounded-xl overflow-hidden hover:bg-[#1c1f3a] transition-colors" 
+     data-post-id="{{ $post->id }}" 
+     data-initialized="false">
     <!-- Header with User Info -->
     <div class="p-4">
         <div class="flex gap-3">
